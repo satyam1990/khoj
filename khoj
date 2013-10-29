@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Ask user for type of search (i.e. File Search/ File Content Search)
+gdialog --title "Easy Search For You" --menu "Select" 12 12 3 1 "Search Files" 2 "Search File Contents" 2> /tmp/input_$$
+gdialog --clear
+
+# Store Type Specified by user
+type=$(cat /tmp/input_$$)
+
+# Ask User for base folder to search in
+gdialog --title "Easy Search For You" --inputbox "In Which Directory to Search?" 12 12 2> /tmp/input_$$
+gdialog --clear
+
+# Store Search Directory
+dir=$(cat /tmp/input_$$)
+
+# ensure that one of the two types was selected
+if [ -z "$type" ]
+then
+	echo "No Type Selected: Exiting..."
+	exit 1
+
+# ensure that directory name is valid
+elif [ ! -d "$dir" ]
+then
+	echo "Invalid Search Directory Entered: Exiting..."
+	exit 2
+
+elif [ $type -eq "1" ]
+then
+	# Ask user for filename
+	gdialog --title "Easy Search For You" --inputbox "Name of file?" 12 12 2> /tmp/input_$$
+	gdialog --clear
+
+	# Store filename
+	filename=$(cat /tmp/input_$$)
+
+	# ensure filename is not null
+	if [ -z "$filename" ]
+	then
+		echo "Empty File Name: Exiting..."
+		exit 3
+	fi
+
+	clear	
+	# Confirm User	
+	echo "Searching for file: \"$filename\" in directory: \"$dir\""
+	# Do actual search
+	find "$dir" -name "$filename*" -type f 2> /dev/null
+
+else
+	# Ask user for content to be looked for in a file
+	gdialog --title "Easy Search For You" --inputbox "Contents to look for?" 12 12 2> /tmp/input_$$
+	gdialog --clear
+
+	# Store Content
+	content=$(cat /tmp/input_$$)
+
+	# ensure Content is not null
+	if [ -z "$content" ]
+	then
+		echo "Empty Content to look for: Exiting..."
+		exit 4
+	fi
+	
+	clear
+	# Confirm User
+	echo "Searching for files having content: \"$content\" in directory: \"$dir\""
+	# Do actual search
+	find "$dir" -type f -exec grep -iHn "$content*" {} \;
+fi
+
+exit 0
