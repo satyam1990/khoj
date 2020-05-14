@@ -1,0 +1,89 @@
+#!/bin/bash
+
+ ###########################################################################
+ #
+ # khoj
+ #
+ # Author: mSatyam
+ #
+ # May, 2020
+ #
+ # Implements GUI Search Utility for LINUX
+ #
+ ###########################################################################
+
+
+# Ask user for type of search (i.e. File Search/ File Content Search)
+echo -e "1\nSearch Files \n2\nSearch File Contents"  |  zenity --list --title "Easy Search For You" --column "ID" --column " " > /tmp/input_$$
+
+# Store Type Specified by user
+type=$(cat /tmp/input_$$)
+
+# Ask User for base folder to search in
+zenity  --title "Easy Search For You" --entry --text "In Which Directory to Search?" > /tmp/input_$$
+
+# Store Search Directory
+dir=$(cat /tmp/input_$$)
+
+# ensure that one of the two types was selected
+if [ -z "$type" ]
+then
+	echo "No Type Selected: Exiting..."
+	rm -rf /tmp/input_$$
+	exit 1
+
+# ensure that directory name is valid
+elif [ ! -d "$dir" ]
+then
+	echo "Invalid Search Directory Entered: Exiting..."
+	rm -rf /tmp/input_$$
+	exit 2
+
+elif [ $type -eq "1" ]
+then
+	# Ask user for filename
+	zenity  --title "Easy Search For You" --entry --text "Name of File?" > /tmp/input_$$
+
+	# Store filename
+	filename=$(cat /tmp/input_$$)
+
+	# ensure filename is not null
+	if [ -z "$filename" ]
+	then
+		echo "Empty File Name: Exiting..."
+		rm -rf /tmp/input_$$
+		exit 3
+	fi
+
+	clear	
+	# Confirm User	
+	echo "Searching for file: \"$filename\" in directory: \"$dir\""
+	# Do actual search
+	find "$dir" -iname "*$filename*" -type f 2> /dev/null
+
+else
+	# Ask user for content to be looked for in a file
+	zenity  --title "Easy Search For You" --entry --text "Contents to look for?" > /tmp/input_$$
+
+	# Store Content
+	content=$(cat /tmp/input_$$)
+
+	# ensure Content is not null
+	if [ -z "$content" ]
+	then
+		echo "Empty Content to look for: Exiting..."
+		rm -rf /tmp/input_$$
+		exit 4
+	fi
+	
+	clear
+	# Confirm User
+	echo "Searching for files having content: \"$content\" in directory: \"$dir\""
+	# Do actual search
+	find "$dir" -type f -exec grep --color -iHn "$content*" {} \;
+fi
+
+# clean up temporary data
+rm -rf /tmp/input_$$
+
+exit 0
